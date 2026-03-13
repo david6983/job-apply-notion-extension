@@ -12,6 +12,9 @@
     "https://www.linkedin.com/jobs/*",
     "https://www.cake.me/*",
     "https://www.104.com.tw/*",
+    "https://104.com.tw/*",
+    "https://m.104.com.tw/*",
+    "https://go.104.com.tw/*",
     "https://api.notion.com/*"
   ],
   "background": {
@@ -22,7 +25,10 @@
       "matches": [
         "https://www.linkedin.com/jobs/*",
         "https://www.cake.me/*",
-        "https://www.104.com.tw/*"
+        "https://www.104.com.tw/*",
+        "https://104.com.tw/*",
+        "https://m.104.com.tw/*",
+        "https://go.104.com.tw/*"
       ],
       "js": [
         "lib/utils.js",

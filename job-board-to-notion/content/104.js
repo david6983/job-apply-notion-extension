@@ -4,6 +4,7 @@
 
   function extract104() {
     const titleSelectors = [
+      ".hero-corp",
       "h1",
       ".job-title",
       "[data-qa='job-title']",
@@ -11,6 +12,7 @@
     ];
 
     const companySelectors = [
+      ".hero-head-company-title",
       ".company-name",
       ".company-name a",
       "[data-qa='company-name']",

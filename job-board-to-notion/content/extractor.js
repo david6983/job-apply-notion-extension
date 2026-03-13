@@ -8,7 +8,7 @@
     if (!hostname) return null;
     if (hostname.includes("linkedin.com")) return "linkedin";
     if (hostname.includes("cake.me")) return "cake";
-    if (hostname.includes("104.com.tw")) return "104";
+    if (hostname.includes("go.104.com.tw")) return "104";
     return null;
   }
 
@@ -17,7 +17,7 @@
     if (!source) {
       return buildError("Unsupported page. This site is not configured.");
     }
-
+    
     const extractor = window.JBTN.extractors[source];
     if (!extractor) {
       return buildError("Extractor not available for this site.");
