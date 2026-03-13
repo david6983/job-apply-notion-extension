@@ -15,15 +15,27 @@
 
       <section class="panel">
         <div class="button-row">
-          <button id="extractBtn" class="button success">Extract current page</button>
+          <button id="saveBtn" class="button success">Save to notion</button>
           <button id="testBtn" class="button">Test Notion connection</button>
         </div>
       </section>
 
       <section class="panel result">
-        <div class="label">Result</div>
-        <div id="status" class="status muted">No actions yet.</div>
-        <pre id="resultJson" class="result-json">{}</pre>
+        <div class="label">Extracted</div>
+        <div class="kv">
+          <div class="key">Position</div>
+          <div id="jobTitle" class="value">-</div>
+          <div class="key">Company</div>
+          <div id="companyName" class="value">-</div>
+          <div class="key">Link</div>
+          <div id="jobLink" class="value">-</div>
+        </div>
+        <div id="savedStatus" class="status muted">Not saved yet.</div>
+        <div id="status" class="status muted">Waiting for extraction...</div>
+        <details class="debug">
+          <summary>Debug JSON</summary>
+          <pre id="resultJson" class="result-json">{}</pre>
+        </details>
       </section>
     </div>
 

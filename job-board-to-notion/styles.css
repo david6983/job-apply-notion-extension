@@ -121,6 +121,12 @@ body {
   border-color: #1f5a2b;
 }
 
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .status {
   margin-top: 8px;
   font-size: 12px;
@@ -159,4 +165,35 @@ body {
 .result {
   display: flex;
   flex-direction: column;
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 6px 10px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.kv .key {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10px;
+}
+
+.kv .value {
+  word-break: break-word;
+}
+
+.debug {
+  margin-top: 10px;
+}
+
+.debug summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }

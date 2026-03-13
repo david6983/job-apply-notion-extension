@@ -102,6 +102,25 @@ async function notionRequest(url, token, body) {
   return buildOk(json);
 }
 
+function readSelectName(prop) {
+  if (!prop) return "";
+  if (prop.select && prop.select.name) return prop.select.name;
+  return "";
+}
+
+function readDateStart(prop) {
+  if (!prop || !prop.date) return "";
+  return prop.date.start || "";
+}
+
+function buildSavedRecordFromPage(page) {
+  if (!page || !page.properties) return null;
+  const props = page.properties;
+  const savedAt = readDateStart(props["Applied date"]) || page.created_time || "";
+  const status = readSelectName(props["Stage"]) || "";
+  return { savedAt, status };
+}
+
 async function createNotionPage(token, databaseId, job) {
   const configCheck = validateConfig(token, databaseId);
   if (!configCheck.ok) return configCheck;
@@ -111,6 +130,42 @@ async function createNotionPage(token, databaseId, job) {
 
   // TODO: Add retry/backoff and rate-limit handling for production use.
   return notionRequest(`${NOTION_API_BASE}/pages`, token, payload.data);
+}
+
+async function findExistingJobByLink(token, databaseId, link) {
+  const configCheck = validateConfig(token, databaseId);
+  if (!configCheck.ok) return configCheck;
+  if (!cleanText(link)) return buildOk(null);
+
+  const body = {
+    filter: {
+      property: "Link",
+      rich_text: {
+        equals: cleanText(link)
+      }
+    },
+    page_size: 1
+  };
+
+  const res = await fetch(`${NOTION_API_BASE}/databases/${databaseId}/query`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "Notion-Version": NOTION_VERSION
+    },
+    body: JSON.stringify(body)
+  });
+
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    let message = json && json.message ? json.message : `Notion API error (${res.status}).`;
+    return buildError(message);
+  }
+
+  const page = json.results && json.results[0] ? json.results[0] : null;
+  if (!page) return buildOk(null);
+  return buildOk(buildSavedRecordFromPage(page));
 }
 
 async function testConnection(token, databaseId) {
@@ -160,4 +215,5 @@ async function testConnection(token, databaseId) {
 if (typeof self !== "undefined") {
   self.createNotionPage = createNotionPage;
   self.testConnection = testConnection;
+  self.findExistingJobByLink = findExistingJobByLink;
 }

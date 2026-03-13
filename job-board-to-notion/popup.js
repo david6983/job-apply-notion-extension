@@ -1,7 +1,13 @@
 const testBtn = document.getElementById("testBtn");
-const extractBtn = document.getElementById("extractBtn");
+const saveBtn = document.getElementById("saveBtn");
 const statusEl = document.getElementById("status");
 const resultJsonEl = document.getElementById("resultJson");
+const savedStatusEl = document.getElementById("savedStatus");
+const jobTitleEl = document.getElementById("jobTitle");
+const companyNameEl = document.getElementById("companyName");
+const jobLinkEl = document.getElementById("jobLink");
+
+let currentJob = null;
 
 function setStatus(message, type) {
   statusEl.textContent = message;
@@ -10,6 +16,48 @@ function setStatus(message, type) {
 
 function setResult(data) {
   resultJsonEl.textContent = JSON.stringify(data || {}, null, 2);
+}
+
+function setExtracted(job) {
+  currentJob = job || null;
+  jobTitleEl.textContent = (job && job.jobTitle) || "-";
+  companyNameEl.textContent = (job && job.companyName) || "-";
+  jobLinkEl.textContent = (job && job.link) || "-";
+}
+
+function setSavedStatus(record) {
+  if (!record) {
+    savedStatusEl.textContent = "Not saved yet.";
+    savedStatusEl.className = "status muted";
+    saveBtn.disabled = false;
+    return;
+  }
+  const date = record.savedAt ? new Date(record.savedAt).toLocaleString() : "unknown date";
+  const status = record.status || "unknown";
+  savedStatusEl.textContent = `You already saved this on ${date}. Status is ${status}.`;
+  savedStatusEl.className = "status ok";
+  saveBtn.disabled = true;
+}
+
+function runExtraction() {
+  setStatus("Extracting job data...", "muted");
+  setResult({});
+  chrome.runtime.sendMessage({ type: "EXTRACT_CURRENT" }, (response) => {
+    if (!response) {
+      setStatus("No response from background.", "error");
+      return;
+    }
+    if (response.ok) {
+      setStatus("Extraction ready.", "ok");
+      setExtracted(response.data.extracted);
+      setSavedStatus(response.data.saved);
+    } else {
+      setStatus(response.error || "Extraction failed.", "error");
+      setExtracted(null);
+      setSavedStatus(null);
+    }
+    setResult(response.data || response);
+  });
 }
 
 testBtn.addEventListener("click", () => {
@@ -29,19 +77,26 @@ testBtn.addEventListener("click", () => {
   });
 });
 
-extractBtn.addEventListener("click", () => {
-  setStatus("Extracting job data...", "muted");
+saveBtn.addEventListener("click", () => {
+  if (!currentJob) {
+    runExtraction();
+    return;
+  }
+  setStatus("Saving to Notion...", "muted");
   setResult({});
-  chrome.runtime.sendMessage({ type: "EXTRACT_CURRENT" }, (response) => {
+  chrome.runtime.sendMessage({ type: "SAVE_TO_NOTION", job: currentJob }, (response) => {
     if (!response) {
       setStatus("No response from background.", "error");
       return;
     }
     if (response.ok) {
       setStatus("Saved to Notion successfully.", "ok");
+      setSavedStatus(response.data.saved);
     } else {
-      setStatus(response.error || "Extraction failed.", "error");
+      setStatus(response.error || "Save failed.", "error");
     }
     setResult(response.data || response);
   });
 });
+
+runExtraction();
