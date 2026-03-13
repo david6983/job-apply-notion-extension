@@ -141,6 +141,16 @@ body {
   border-color: rgba(47, 122, 63, 0.4);
 }
 
+.status.ready {
+  color: #b63a2d;
+  border-color: rgba(182, 58, 45, 0.4);
+}
+
+.status.applied {
+  color: var(--success);
+  border-color: rgba(47, 122, 63, 0.4);
+}
+
 .status.error {
   color: var(--danger);
   border-color: rgba(182, 58, 45, 0.4);

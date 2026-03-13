@@ -35,11 +35,16 @@ function setSavedStatus(record) {
     return;
   }
   const date = record.savedAt ? new Date(record.savedAt).toLocaleString() : "unknown date";
-  const status = record.status || "unknown";
-  savedStatusEl.textContent = `You already saved this on ${date}. Status is ${status}.`;
-  savedStatusEl.className = "status ok";
+  const status = (record.status || "").toLowerCase();
+  if (status === "applied") {
+    savedStatusEl.textContent = `You already applied this on ${date}. Applied.`;
+    savedStatusEl.className = "status applied";
+  } else {
+    savedStatusEl.textContent = `You saved this on ${date}. NOT YET APPLIED!.`;
+    savedStatusEl.className = "status ready";
+  }
   saveBtn.disabled = true;
-  appliedBtn.disabled = status.toLowerCase() === "applied";
+  appliedBtn.disabled = status === "applied";
 }
 
 function runExtraction() {
