@@ -20,6 +20,15 @@ function getTodayDateString() {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+function getDateStringWithOffset(offsetDays) {
+  const now = new Date();
+  now.setDate(now.getDate() + offsetDays);
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 function getCandidatureTypeFromUrl(url) {
   const value = cleanText(url).toLowerCase();
   if (value.includes("linkedin.com")) return "linkedin";
@@ -200,6 +209,62 @@ async function updateJobStage(token, pageId, stageName) {
   return buildOk(json);
 }
 
+async function countAppliedByDate(token, databaseId, dateString) {
+  const body = {
+    filter: {
+      and: [
+        {
+          property: "Applied date",
+          date: { equals: dateString }
+        },
+        {
+          property: "Stage",
+          select: { equals: "Applied" }
+        }
+      ]
+    },
+    page_size: 100
+  };
+
+  const res = await fetch(`${NOTION_API_BASE}/databases/${databaseId}/query`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "Notion-Version": NOTION_VERSION
+    },
+    body: JSON.stringify(body)
+  });
+
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    let message = json && json.message ? json.message : `Notion API error (${res.status}).`;
+    return buildError(message);
+  }
+
+  const results = json.results || [];
+  return buildOk(results.length);
+}
+
+async function getAppliedStats(token, databaseId) {
+  const configCheck = validateConfig(token, databaseId);
+  if (!configCheck.ok) return configCheck;
+
+  const today = getDateStringWithOffset(0);
+  const yesterday = getDateStringWithOffset(-1);
+
+  const todayCount = await countAppliedByDate(token, databaseId, today);
+  if (!todayCount.ok) return todayCount;
+  const yesterdayCount = await countAppliedByDate(token, databaseId, yesterday);
+  if (!yesterdayCount.ok) return yesterdayCount;
+
+  return buildOk({
+    todayCount: todayCount.data,
+    yesterdayCount: yesterdayCount.data,
+    delta: todayCount.data - yesterdayCount.data
+  });
+}
+
 async function testConnection(token, databaseId) {
   const configCheck = validateConfig(token, databaseId);
   if (!configCheck.ok) return configCheck;
@@ -249,4 +314,5 @@ if (typeof self !== "undefined") {
   self.testConnection = testConnection;
   self.findExistingJobByLink = findExistingJobByLink;
   self.updateJobStage = updateJobStage;
+  self.getAppliedStats = getAppliedStats;
 }

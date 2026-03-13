@@ -130,6 +130,19 @@ async function handleMarkApplied(job) {
   return buildOk({ extracted: payloadJob, saved: savedRecord });
 }
 
+async function handleGetStats() {
+  if (!NOTION_TOKEN || !NOTION_DATABASE_ID) {
+    return buildError("Missing Notion credentials.");
+  }
+  if (
+    NOTION_TOKEN === "secret_xxx_replace_me" ||
+    NOTION_DATABASE_ID === "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  ) {
+    return buildError("Please set NOTION_TOKEN and NOTION_DATABASE_ID in lib/config.js");
+  }
+  return getAppliedStats(NOTION_TOKEN, NOTION_DATABASE_ID);
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message || !message.type) return;
 
@@ -150,6 +163,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "MARK_APPLIED") {
     handleMarkApplied(message.job).then(sendResponse);
+    return true;
+  }
+
+  if (message.type === "GET_STATS") {
+    handleGetStats().then(sendResponse);
     return true;
   }
 });

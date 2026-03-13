@@ -207,3 +207,39 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.stat {
+  background: #f6f6f3;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.stat-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.stat-value {
+  font-size: 18px;
+  margin-top: 6px;
+}
+
+.stat-value.good {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.stat-value.bad {
+  color: var(--danger);
+  font-weight: 700;
+}

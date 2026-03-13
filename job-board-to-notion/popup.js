@@ -7,6 +7,8 @@ const savedStatusEl = document.getElementById("savedStatus");
 const jobTitleEl = document.getElementById("jobTitle");
 const companyNameEl = document.getElementById("companyName");
 const jobLinkEl = document.getElementById("jobLink");
+const appliedTodayEl = document.getElementById("appliedToday");
+const appliedDeltaEl = document.getElementById("appliedDelta");
 
 let currentJob = null;
 
@@ -59,12 +61,25 @@ function runExtraction() {
       setStatus("Extraction ready.", "ok");
       setExtracted(response.data.extracted);
       setSavedStatus(response.data.saved);
+      refreshStats();
     } else {
       setStatus(response.error || "Extraction failed.", "error");
       setExtracted(null);
       setSavedStatus(null);
     }
     setResult(response.data || response);
+  });
+}
+
+function refreshStats() {
+  chrome.runtime.sendMessage({ type: "GET_STATS" }, (response) => {
+    if (!response || !response.ok) return;
+    const data = response.data || {};
+    const today = data.todayCount || 0;
+    const delta = data.delta || 0;
+    appliedTodayEl.textContent = String(today);
+    appliedDeltaEl.textContent = delta >= 0 ? `+${delta}` : String(delta);
+    appliedTodayEl.className = `stat-value ${today >= 20 ? "good" : "bad"}`;
   });
 }
 
@@ -122,6 +137,7 @@ appliedBtn.addEventListener("click", () => {
     if (response.ok) {
       setStatus("Marked as Applied.", "ok");
       setSavedStatus(response.data.saved);
+      refreshStats();
     } else {
       setStatus(response.error || "Update failed.", "error");
     }
@@ -130,3 +146,4 @@ appliedBtn.addEventListener("click", () => {
 });
 
 runExtraction();
+refreshStats();
