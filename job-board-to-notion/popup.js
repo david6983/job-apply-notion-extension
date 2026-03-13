@@ -1,5 +1,6 @@
 const testBtn = document.getElementById("testBtn");
 const saveBtn = document.getElementById("saveBtn");
+const appliedBtn = document.getElementById("appliedBtn");
 const statusEl = document.getElementById("status");
 const resultJsonEl = document.getElementById("resultJson");
 const savedStatusEl = document.getElementById("savedStatus");
@@ -30,6 +31,7 @@ function setSavedStatus(record) {
     savedStatusEl.textContent = "Not saved yet.";
     savedStatusEl.className = "status muted";
     saveBtn.disabled = false;
+    appliedBtn.disabled = true;
     return;
   }
   const date = record.savedAt ? new Date(record.savedAt).toLocaleString() : "unknown date";
@@ -37,6 +39,7 @@ function setSavedStatus(record) {
   savedStatusEl.textContent = `You already saved this on ${date}. Status is ${status}.`;
   savedStatusEl.className = "status ok";
   saveBtn.disabled = true;
+  appliedBtn.disabled = status.toLowerCase() === "applied";
 }
 
 function runExtraction() {
@@ -91,9 +94,31 @@ saveBtn.addEventListener("click", () => {
     }
     if (response.ok) {
       setStatus("Saved to Notion successfully.", "ok");
-      setSavedStatus(response.data.saved);
+      runExtraction();
     } else {
       setStatus(response.error || "Save failed.", "error");
+    }
+    setResult(response.data || response);
+  });
+});
+
+appliedBtn.addEventListener("click", () => {
+  if (!currentJob) {
+    runExtraction();
+    return;
+  }
+  setStatus("Marking as Applied...", "muted");
+  setResult({});
+  chrome.runtime.sendMessage({ type: "MARK_APPLIED", job: currentJob }, (response) => {
+    if (!response) {
+      setStatus("No response from background.", "error");
+      return;
+    }
+    if (response.ok) {
+      setStatus("Marked as Applied.", "ok");
+      setSavedStatus(response.data.saved);
+    } else {
+      setStatus(response.error || "Update failed.", "error");
     }
     setResult(response.data || response);
   });

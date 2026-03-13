@@ -94,6 +94,42 @@ async function handleSaveToNotion(job) {
   return buildOk({ extracted: payloadJob, notion: saved.data });
 }
 
+async function handleMarkApplied(job) {
+  if (!NOTION_TOKEN || !NOTION_DATABASE_ID) {
+    return buildError("Missing Notion credentials.");
+  }
+  if (
+    NOTION_TOKEN === "secret_xxx_replace_me" ||
+    NOTION_DATABASE_ID === "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  ) {
+    return buildError("Please set NOTION_TOKEN and NOTION_DATABASE_ID in lib/config.js");
+  }
+
+  let payloadJob = job;
+  if (!payloadJob) {
+    const extraction = await extractFromActiveTab();
+    if (!extraction.ok) return extraction;
+    payloadJob = extraction.data;
+  }
+
+  const existing = await findExistingJobByLink(NOTION_TOKEN, NOTION_DATABASE_ID, payloadJob.link);
+  if (!existing.ok || !existing.data || !existing.data.pageId) {
+    return buildError("Not saved in Notion yet.");
+  }
+
+  const updated = await updateJobStage(NOTION_TOKEN, existing.data.pageId, "Applied");
+  if (!updated.ok) {
+    return buildError(updated.error);
+  }
+
+  const savedRecord = {
+    savedAt: existing.data.savedAt,
+    status: "Applied"
+  };
+
+  return buildOk({ extracted: payloadJob, saved: savedRecord });
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message || !message.type) return;
 
@@ -109,6 +145,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "SAVE_TO_NOTION") {
     handleSaveToNotion(message.job).then(sendResponse);
+    return true;
+  }
+
+  if (message.type === "MARK_APPLIED") {
+    handleMarkApplied(message.job).then(sendResponse);
     return true;
   }
 });

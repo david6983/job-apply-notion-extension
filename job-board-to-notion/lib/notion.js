@@ -118,7 +118,7 @@ function buildSavedRecordFromPage(page) {
   const props = page.properties;
   const savedAt = readDateStart(props["Applied date"]) || page.created_time || "";
   const status = readSelectName(props["Stage"]) || "";
-  return { savedAt, status };
+  return { pageId: page.id, savedAt, status };
 }
 
 async function createNotionPage(token, databaseId, job) {
@@ -166,6 +166,38 @@ async function findExistingJobByLink(token, databaseId, link) {
   const page = json.results && json.results[0] ? json.results[0] : null;
   if (!page) return buildOk(null);
   return buildOk(buildSavedRecordFromPage(page));
+}
+
+async function updateJobStage(token, pageId, stageName) {
+  if (!cleanText(pageId)) {
+    return buildError("Missing Notion page id.");
+  }
+
+  const body = {
+    properties: {
+      "Stage": {
+        select: { name: stageName }
+      }
+    }
+  };
+
+  const res = await fetch(`${NOTION_API_BASE}/pages/${pageId}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "Notion-Version": NOTION_VERSION
+    },
+    body: JSON.stringify(body)
+  });
+
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    let message = json && json.message ? json.message : `Notion API error (${res.status}).`;
+    return buildError(message);
+  }
+
+  return buildOk(json);
 }
 
 async function testConnection(token, databaseId) {
@@ -216,4 +248,5 @@ if (typeof self !== "undefined") {
   self.createNotionPage = createNotionPage;
   self.testConnection = testConnection;
   self.findExistingJobByLink = findExistingJobByLink;
+  self.updateJobStage = updateJobStage;
 }
