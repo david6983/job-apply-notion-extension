@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Job Board to Notion</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <div class="title">Job Board to Notion</div>
+        <div class="subtitle">Extract and save job posts in one click.</div>
+      </header>
+
+      <section class="panel">
+        <div class="button-row">
+          <button id="extractBtn" class="button success">Extract current page</button>
+          <button id="testBtn" class="button">Test Notion connection</button>
+        </div>
+      </section>
+
+      <section class="panel result">
+        <div class="label">Result</div>
+        <div id="status" class="status muted">No actions yet.</div>
+        <pre id="resultJson" class="result-json">{}</pre>
+      </section>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
