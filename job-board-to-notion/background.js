@@ -143,6 +143,20 @@ async function handleGetStats() {
   return getAppliedStats(NOTION_TOKEN, NOTION_DATABASE_ID);
 }
 
+async function handleCheckSaved(link) {
+  if (!NOTION_TOKEN || !NOTION_DATABASE_ID) {
+    return buildError("Missing Notion credentials.");
+  }
+  if (
+    NOTION_TOKEN === "secret_xxx_replace_me" ||
+    NOTION_DATABASE_ID === "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  ) {
+    return buildError("Please set NOTION_TOKEN and NOTION_DATABASE_ID in lib/config.js");
+  }
+  const saved = await checkNotionSaved(link);
+  return buildOk({ saved: saved });
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message || !message.type) return;
 
@@ -168,6 +182,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "GET_STATS") {
     handleGetStats().then(sendResponse);
+    return true;
+  }
+
+  if (message.type === "CHECK_SAVED_STATUS") {
+    handleCheckSaved(message.link).then(sendResponse);
     return true;
   }
 });
