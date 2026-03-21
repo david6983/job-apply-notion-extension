@@ -26,6 +26,105 @@
     return cleanText(el.textContent);
   }
 
+  function includesRemote(value) {
+    return /remote/i.test(cleanText(value));
+  }
+
+  function includesTaiwan(value) {
+    return /taiwan/i.test(cleanText(value));
+  }
+
+  function looksLikeTaiwanRemote(value) {
+    return /taiwan\s*\(\s*remote\s*\)/i.test(cleanText(value));
+  }
+
+  function normalizeLinkedInLocationText(value) {
+    const cleaned = cleanText(value);
+    if (!cleaned) return "";
+    const parts = cleaned
+      .split(/[·•]/)
+      .map((part) => cleanText(part))
+      .filter(Boolean);
+    return parts[0] || cleaned;
+  }
+
+  function isNonLocationText(value) {
+    const text = cleanText(value).toLowerCase();
+    if (!text) return true;
+    if (/\bago\b/.test(text)) return true;
+    if (/\bapplicant\b/.test(text) || /\bapplicants\b/.test(text)) return true;
+    if (/\bapplied\b/.test(text)) return true;
+    if (/\bclick(ed)?\b/.test(text) && /\bapply\b/.test(text)) return true;
+    if (/^\d+\s*(hours?|days?|minutes?)\b/.test(text)) return true;
+    return false;
+  }
+
+  function getLinkedInRawLocationText(root) {
+    const containerSelectors = [
+      ".job-details-jobs-unified-top-card__tertiary-description-container",
+      ".job-details-jobs-unified-top-card__primary-description-container",
+      ".jobs-unified-top-card__tertiary-description-container",
+      ".jobs-unified-top-card__primary-description-container"
+    ];
+
+    const container = getFirstElement(containerSelectors, root);
+    if (container) {
+      const lowEmphasis = container.querySelectorAll(".tvm__text--low-emphasis");
+      for (const el of lowEmphasis) {
+        const text = cleanText(el.textContent);
+        if (!isNonLocationText(text)) {
+          return normalizeLinkedInLocationText(text);
+        }
+      }
+
+      const containerText = normalizeLinkedInLocationText(container.textContent);
+      if (containerText && !isNonLocationText(containerText)) {
+        return containerText;
+      }
+    }
+
+    const fallbackText = normalizeLinkedInLocationText(
+      getTextFromSelectors(
+        [
+          ".job-details-jobs-unified-top-card__tertiary-description-container .tvm__text--low-emphasis",
+          ".job-details-jobs-unified-top-card__primary-description-container .tvm__text--low-emphasis",
+          ".jobs-unified-top-card__tertiary-description-container .tvm__text--low-emphasis",
+          ".jobs-unified-top-card__primary-description-container .tvm__text--low-emphasis"
+        ],
+        root
+      )
+    );
+
+    if (fallbackText && !isNonLocationText(fallbackText)) {
+      return fallbackText;
+    }
+
+    return "";
+  }
+
+  function deriveLinkedInLocation({ jobTitle, locationText }) {
+    const title = cleanText(jobTitle);
+    const location = cleanText(locationText);
+
+    if (looksLikeTaiwanRemote(title)) {
+      return "Taiwan, Remote";
+    }
+
+    if (includesRemote(title)) {
+      return "APAC (remote)";
+    }
+
+    if (includesTaiwan(location) && (includesRemote(location) || looksLikeTaiwanRemote(location))) {
+      return "Taiwan, Remote";
+    }
+
+    if (includesRemote(location)) {
+      return "APAC (remote)";
+    }
+
+    return normalizeLinkedInLocationText(location);
+  }
+
   function toAbsoluteUrl(url) {
     const cleaned = cleanText(url);
     if (!cleaned) return "";
@@ -176,6 +275,8 @@
 
     const jobTitle = getTextFromSelectors(titleSelectors, root);
     const companyName = getTextFromSelectors(companySelectors, root);
+    const rawLocationText = getLinkedInRawLocationText(root);
+    const location = deriveLinkedInLocation({ jobTitle, locationText: rawLocationText });
 
     const link = getCurrentJobLink(root);
 
@@ -185,6 +286,9 @@
     if (!companyName) {
       console.warn("LinkedIn extractor: company name not found in selected job panel.");
     }
+    if (!rawLocationText) {
+      console.warn("LinkedIn extractor: location text not found in selected job panel.");
+    }
 
     if (!jobTitle || !companyName) return null;
 
@@ -192,6 +296,7 @@
       link: link,
       jobTitle: jobTitle,
       companyName: companyName,
+      location: location,
       source: "linkedin"
     };
   }

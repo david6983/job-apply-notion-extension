@@ -6,6 +6,7 @@ const resultJsonEl = document.getElementById("resultJson");
 const savedStatusEl = document.getElementById("savedStatus");
 const jobTitleEl = document.getElementById("jobTitle");
 const companyNameEl = document.getElementById("companyName");
+const jobLocationEl = document.getElementById("jobLocation");
 const jobLinkEl = document.getElementById("jobLink");
 const appliedTodayEl = document.getElementById("appliedToday");
 const appliedDeltaEl = document.getElementById("appliedDelta");
@@ -25,6 +26,7 @@ function setExtracted(job) {
   currentJob = job || null;
   jobTitleEl.textContent = (job && job.jobTitle) || "-";
   companyNameEl.textContent = (job && job.companyName) || "-";
+  jobLocationEl.textContent = (job && job.location) || "-";
   jobLinkEl.textContent = (job && job.link) || "-";
 }
 

@@ -52,11 +52,23 @@ function buildLocationProperty(value) {
   return { multi_select: [{ name: value }] };
 }
 
+function getLocationForNotion(job) {
+  const defaultLocation = "Taiwan";
+  if (!job) return defaultLocation;
+  const source = cleanText(job.source).toLowerCase();
+  const link = cleanText(job.link).toLowerCase();
+  const isLinkedIn = source === "linkedin" || link.includes("linkedin.com");
+  if (!isLinkedIn) return defaultLocation;
+  const location = cleanText(job.location);
+  return location || defaultLocation;
+}
+
 function buildNotionProperties(job) {
   const link = cleanText(job.link);
   const company = cleanText(job.companyName);
   const position = cleanText(job.jobTitle);
   const candidature = getCandidatureTypeFromUrl(link);
+  const location = getLocationForNotion(job);
 
   return {
     "Company": {
@@ -72,7 +84,7 @@ function buildNotionProperties(job) {
     "Applied date": {
       date: { start: getTodayDateString() }
     },
-    "Location": buildLocationProperty("Taiwan"),
+    "Location": buildLocationProperty(location),
     "Type de candidature": buildTypeDeCandidature(candidature)
   };
 }

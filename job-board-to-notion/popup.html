@@ -20,26 +20,7 @@
         </div>
       </section>
 
-      <section class="panel result">
-        <div class="label">Extracted</div>
-        <div class="kv">
-          <div class="key">Position</div>
-          <div id="jobTitle" class="value">-</div>
-          <div class="key">Company</div>
-          <div id="companyName" class="value">-</div>
-          <div class="key">Link</div>
-          <div id="jobLink" class="value">-</div>
-        </div>
-        <div id="savedStatus" class="status muted">Not saved yet.</div>
-        <div id="status" class="status muted">Waiting for extraction...</div>
-        <details class="debug">
-          <summary>Debug JSON</summary>
-          <pre id="resultJson" class="result-json">{}</pre>
-        </details>
-      </section>
-
       <section class="panel">
-        <div class="label">Today</div>
         <div class="stats">
           <div class="stat">
             <div class="stat-label">Applied Today</div>
@@ -50,6 +31,26 @@
             <div id="appliedDelta" class="stat-value">0</div>
           </div>
         </div>
+      </section>
+
+      <section class="panel result">
+        <div class="label">Extracted</div>
+        <div class="kv">
+          <div class="key">Position</div>
+          <div id="jobTitle" class="value">-</div>
+          <div class="key">Company</div>
+          <div id="companyName" class="value">-</div>
+          <div class="key">Location</div>
+          <div id="jobLocation" class="value">-</div>
+          <div class="key">Link</div>
+          <div id="jobLink" class="value">-</div>
+        </div>
+        <div id="savedStatus" class="status muted">Not saved yet.</div>
+        <div id="status" class="status muted">Waiting for extraction...</div>
+        <details class="debug">
+          <summary>Debug JSON</summary>
+          <pre id="resultJson" class="result-json">{}</pre>
+        </details>
       </section>
 
       <div class="footer-actions">
